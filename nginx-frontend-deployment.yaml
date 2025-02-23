@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-frontend
+  namespace: chatapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx-frontend
+  template:
+    metadata:
+      labels:
+        app: nginx-frontend
+    spec:
+      containers:
+        - name: nginx-frontend
+          image: 442042550385.dkr.ecr.us-east-1.amazonaws.com/django-chat-frontend:latest
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: nginx-config-volume
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf  # Corrected path to use conf.d
+      volumes:
+        - name: nginx-config-volume
+          configMap:
+            name: nginx-config  # Reference to the ConfigMap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-frontend-service
+  namespace: chatapp
+spec:
+  selector:
+    app: nginx-frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
